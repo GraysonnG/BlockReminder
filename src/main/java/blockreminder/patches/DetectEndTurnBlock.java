@@ -17,7 +17,6 @@ import com.megacrit.cardcrawl.powers.AbstractPower;
 import com.megacrit.cardcrawl.relics.AbstractRelic;
 import com.megacrit.cardcrawl.relics.CloakClasp;
 import com.megacrit.cardcrawl.relics.Orichalcum;
-import com.megacrit.cardcrawl.stances.AbstractStance;
 import javassist.*;
 import javassist.expr.ExprEditor;
 import javassist.expr.NewExpr;
@@ -29,7 +28,7 @@ import java.util.Map;
 public class DetectEndTurnBlock {
     private static Map<String, Boolean> isEndTurnBlockClass = new HashMap<>();
 
-    public static void calculateEndTurnClass(Class clazz, String endOfTurnMethodName) {
+    private static void calculateEndTurnClass(Class clazz, String endOfTurnMethodName) {
         try {
             ClassPool pool = Loader.getClassPool();
             CtClass ctClass = pool.get(clazz.getName());
@@ -61,7 +60,7 @@ public class DetectEndTurnBlock {
                         }
 
                     } catch (Exception e) {
-
+                        // nop
                     }
                 }
             });
@@ -71,7 +70,7 @@ public class DetectEndTurnBlock {
         isEndTurnBlockClass.putIfAbsent(clazz.getName(), false);
     }
 
-    public static int getAmountOfEndTurnBlockPower(AbstractPower p) {
+    private static int getAmountOfEndTurnBlockPower(AbstractPower p) {
         if (!isEndTurnBlockClass.containsKey(p.getClass().getName())) {
             calculateEndTurnClass(p.getClass(), "atEndOfTurn");
         }
@@ -83,7 +82,7 @@ public class DetectEndTurnBlock {
         return 0;
     }
 
-    public static int getAmountOfEndTurnBlockOrb(AbstractOrb o) {
+    private static int getAmountOfEndTurnBlockOrb(AbstractOrb o) {
         if (!isEndTurnBlockClass.containsKey(o.getClass().getName())) {
             calculateEndTurnClass(o.getClass(), "onEndOfTurn");
         }
@@ -95,7 +94,7 @@ public class DetectEndTurnBlock {
         return 0;
     }
 
-    public static int getAmountOfEndTurnBlockRelics(AbstractPlayer __instance, AbstractRelic r) {
+    private static int getAmountOfEndTurnBlockRelics(AbstractPlayer __instance, AbstractRelic r) {
         switch (r.relicId) {
             case Orichalcum.ID:
                 return __instance.currentBlock <= 0 ? 6 : 0;
@@ -112,12 +111,12 @@ public class DetectEndTurnBlock {
     @SpirePatch(clz = AbstractMonster.class, method = "update")
     public static class BlockPreview {
 
-        public static SpireField<Integer> blockPreview = new SpireField<>(() -> 0);
+        static SpireField<Integer> blockPreview = new SpireField<>(() -> 0);
 
         @SuppressWarnings("unused")
         @SpirePostfixPatch
         public static void updateBlockPreview(AbstractCreature __instance) {
-            if (__instance instanceof AbstractCreature) {
+            if (__instance != null) {
                 BlockPreview.blockPreview.set(__instance, 0);
 
                 for (AbstractPower p : __instance.powers) {
@@ -166,7 +165,7 @@ public class DetectEndTurnBlock {
             int BLOCK_W = 64;
             float BLOCK_ICON_X = -14 * Settings.scale;
             float BLOCK_ICON_Y = -14 * Settings.scale;
-            float xOffset = (currentBlock > 0 ? BLOCK_W / 2 * Settings.scale: 0);
+            float xOffset = (currentBlock > 0 ? BLOCK_W / 2.0f * Settings.scale: 0);
 
             blockPreviewColor.a = 0.5f;
 
