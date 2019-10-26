@@ -148,7 +148,9 @@ public class DetectEndTurnBlock {
             "y"
         })
         public static void render(AbstractCreature __instance, SpriteBatch sb, float blockOffset, float x, float y) {
-            if(BlockPreview.blockPreview.get(__instance) > 0 && AbstractDungeon.overlayMenu.endTurnButton.enabled) {
+            boolean shouldRender = ! (__instance instanceof AbstractMonster) && AbstractDungeon.overlayMenu.endTurnButton.enabled;
+
+            if(BlockPreview.blockPreview.get(__instance) > 0 && shouldRender) {
                 renderBlockPreviewIconAndValue(
                     sb,
                     __instance.currentBlock,
