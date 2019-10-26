@@ -11,7 +11,7 @@ public class BlockReminder {
 
     @SuppressWarnings("unused")
     public static void initialize() {
-        log("Version", "0.0.0");
+        log("Version", "0.0.1");
         new BlockReminder();
     }
 
