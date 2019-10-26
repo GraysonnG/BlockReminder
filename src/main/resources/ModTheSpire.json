@@ -1,0 +1,11 @@
+{
+  "modid" : "block-reminder",
+  "name" : "Block Reminder",
+  "author_list" : ["Blank The Evil"],
+  "description" : "",
+  "credits" : "",
+  "dependencies" : ["basemod"],
+  "version" : "0.0.0",
+  "sts-version" : "07-01-2019",
+  "mts-version" : "3.14.1"
+}
