@@ -1,12 +1,12 @@
 package blockreminder;
 
-import basemod.BaseMod;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 
+@SuppressWarnings("unused")
 @SpireInitializer
 public class BlockReminder {
 
-    BlockReminder() {
+    private BlockReminder() {
     }
 
     @SuppressWarnings("unused")
@@ -16,7 +16,7 @@ public class BlockReminder {
     }
 
     private static void log(String ... items) {
-        System.out.print("RelicSorter ");
+        System.out.print("BlockReminder ");
         for(String item : items) {
             System.out.print(" : " + item);
         }
