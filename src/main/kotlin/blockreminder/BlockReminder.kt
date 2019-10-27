@@ -1,3 +1,5 @@
+package blockreminder
+
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer
 
 @Suppress("unused")
