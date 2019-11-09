@@ -120,7 +120,9 @@ class BlockPreview {
                     }
 
                     for(r: AbstractRelic in player.relics) {
-                        increaseBlockPreview(instance, getAmountOfEndTurnBlockRelics(player, r))
+                        if(BlockReminder.previewRelics.containsKey(r.relicId)) {
+                            increaseBlockPreview(AbstractDungeon.player, BlockReminder.previewRelics[r.relicId]?.invoke(r)!!)
+                        }
                     }
                 }
             }
