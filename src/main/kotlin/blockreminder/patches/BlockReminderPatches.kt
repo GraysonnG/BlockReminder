@@ -46,15 +46,13 @@ class BlockReminderPatches {
             fun Raw(ctBehavior: CtBehavior) {
                 println("\nBlock Reminder: Smart Block Preview Patch")
                 val finder = ClassFinder()
-                val url = Loader.STS_JAR
                 println("\t- Finding Classes...")
-                finder.add(File(url))
+                finder.add(File(Loader.STS_JAR))
 
                 for (modInfo: ModInfo in Loader.MODINFOS) {
                     if (modInfo.jarURL != null) {
                         try {
-                            var f = File(modInfo.jarURL.toURI())
-                            finder.add(f)
+                            finder.add(File(modInfo.jarURL.toURI()))
                         } catch (e: URISyntaxException) {
                             // do nothing
                         }
