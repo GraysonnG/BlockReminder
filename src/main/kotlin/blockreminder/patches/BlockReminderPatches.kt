@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.evacipated.cardcrawl.modthespire.Loader
 import com.evacipated.cardcrawl.modthespire.ModInfo
 import com.evacipated.cardcrawl.modthespire.lib.*
+import com.evacipated.cardcrawl.modthespire.patcher.PatchingException
 import com.megacrit.cardcrawl.actions.common.GainBlockAction
 import com.megacrit.cardcrawl.characters.AbstractPlayer
 import com.megacrit.cardcrawl.core.AbstractCreature
@@ -15,8 +16,8 @@ import com.megacrit.cardcrawl.powers.AbstractPower
 import com.megacrit.cardcrawl.relics.AbstractRelic
 import javassist.*
 import javassist.expr.ExprEditor
+import javassist.expr.FieldAccess
 import javassist.expr.MethodCall
-import javassist.expr.NewExpr
 import org.clapper.util.classutil.*
 import java.net.URISyntaxException
 import kotlin.collections.ArrayList
@@ -69,6 +70,7 @@ class BlockReminderPatches {
                         NotClassFilter(AbstractClassFilter()),
                         ClassModifiersClassFilter(Modifier.PUBLIC),
                         OrClassFilter(
+                            StsClassFilter(AbstractRelic::class.java),
                             StsClassFilter(AbstractPower::class.java),
                             StsClassFilter(AbstractOrb::class.java)
                         )
@@ -95,22 +97,30 @@ class BlockReminderPatches {
                         // do nothing
                     }
 
+                    try {
+                        endOfTurn = ctClass.getDeclaredMethod("onPlayerEndTurn")
+                    } catch (e:  NotFoundException) {
+                        // do nothing
+                    }
+
                     val lines = Locator().Locate(endOfTurn)
 
                     if (endOfTurn != null && lines != null && lines.isNotEmpty()) {
                         println("\t|\t- Patch Class: [${classInfo.className}]")
                         try {
-                            endOfTurn.instrument(Test1())
+                            endOfTurn.instrument(FieldSetInstrument())
+                            endOfTurn.instrument(PreviewInstrument())
                             println("\t|\tSuccess...\n\t|")
-                        } catch(e: Exception) {
+                        } catch(e: PatchingException) {
                             println("\t|\tFailure...\n\t|")
+                            e.printStackTrace()
                         }
                     }
                 }
                 println("\t- Done Patching...")
             }
 
-            class Test1 : ExprEditor() {
+            class PreviewInstrument : ExprEditor() {
                 override fun edit(m: MethodCall?) {
                     if(m?.methodName == "addToBot" || m?.methodName == "addToBottom" || m?.methodName == "addToTop") {
                         println("\t|\t\t- Replacing Method Call: ${m?.className}.${m?.methodName}")
@@ -122,6 +132,27 @@ class BlockReminderPatches {
                                 "} else {" +
                                     "$" + "proceed($$);" +
                                 "}" +
+                        "}")
+                    } else {
+                        if(m != null) {
+                            m.replace("{" +
+                                "if (!${BlockPreview::class.java.name}.isPreview) {" +
+                                    "$" + "_=$" + "proceed($$);" +
+                                "}" +
+                            "}")
+                        }
+                    }
+                }
+            }
+
+            class FieldSetInstrument : ExprEditor() {
+                override fun edit(f: FieldAccess) {
+                    println()
+                    if(f.isWriter) {
+                        f.replace("{" +
+                            "if (!${BlockPreview::class.java.name}.isPreview) {" +
+                                "$" + "_=$" + "proceed($$);" +
+                            "}" +
                         "}")
                     }
                 }
