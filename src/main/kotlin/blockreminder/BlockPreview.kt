@@ -14,8 +14,6 @@ import com.megacrit.cardcrawl.helpers.ImageMaster
 import com.megacrit.cardcrawl.orbs.AbstractOrb
 import com.megacrit.cardcrawl.powers.AbstractPower
 import com.megacrit.cardcrawl.relics.AbstractRelic
-import com.megacrit.cardcrawl.relics.CloakClasp
-import com.megacrit.cardcrawl.relics.Orichalcum
 import javassist.CannotCompileException
 import javassist.CtMethod
 import javassist.NotFoundException
@@ -79,14 +77,6 @@ class BlockPreview {
                     (BlockReminderPatches.BlockPreviewField.blockPreview.get(owner) ?: 0) + amount)
         }
 
-        private fun getAmountOfEndTurnBlockRelics(__instance: AbstractPlayer, r: AbstractRelic): Int {
-            return when (r.relicId) {
-                Orichalcum.ID -> if (__instance.currentBlock <= 0) 6 else 0
-                CloakClasp.ID -> __instance.hand.group.size
-                else -> 0
-            }
-        }
-
         @JvmField
         var isPreview = false;
 
@@ -102,9 +92,11 @@ class BlockPreview {
                 for (p: AbstractPower in instance.powers) {
                     if(isEndTurnBlockClass[p::class.java.name] == null ) {
                         calculateEndTurnClass(p::class.java, "atEndOfTurn")
+                        calculateEndTurnClass(p::class.java, "atEndOfTurnPreEndTurnCards")
                     }
                     if (isEndTurnBlockClass[p::class.java.name]!!) {
                         p.atEndOfTurn(true)
+                        p.atEndOfTurnPreEndTurnCards(true)
                     }
                 }
 
@@ -120,7 +112,12 @@ class BlockPreview {
                     }
 
                     for(r: AbstractRelic in player.relics) {
-                        increaseBlockPreview(instance, getAmountOfEndTurnBlockRelics(player, r))
+                        if(isEndTurnBlockClass[r::class.java.name] == null) {
+                            calculateEndTurnClass(r::class.java, "onPlayerEndTurn")
+                        }
+                        if(isEndTurnBlockClass[r::class.java.name]!!) {
+                            r.onPlayerEndTurn()
+                        }
                     }
                 }
             }

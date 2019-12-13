@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.evacipated.cardcrawl.modthespire.Loader
 import com.evacipated.cardcrawl.modthespire.ModInfo
 import com.evacipated.cardcrawl.modthespire.lib.*
+import com.evacipated.cardcrawl.modthespire.patcher.PatchingException
 import com.megacrit.cardcrawl.actions.common.GainBlockAction
 import com.megacrit.cardcrawl.characters.AbstractPlayer
 import com.megacrit.cardcrawl.core.AbstractCreature
@@ -12,7 +13,11 @@ import com.megacrit.cardcrawl.core.CardCrawlGame
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon
 import com.megacrit.cardcrawl.orbs.AbstractOrb
 import com.megacrit.cardcrawl.powers.AbstractPower
+import com.megacrit.cardcrawl.relics.AbstractRelic
 import javassist.*
+import javassist.expr.ExprEditor
+import javassist.expr.FieldAccess
+import javassist.expr.MethodCall
 import org.clapper.util.classutil.*
 import java.net.URISyntaxException
 import kotlin.collections.ArrayList
@@ -46,15 +51,13 @@ class BlockReminderPatches {
             fun Raw(ctBehavior: CtBehavior) {
                 println("\nBlock Reminder: Smart Block Preview Patch")
                 val finder = ClassFinder()
-                val url = Loader.STS_JAR
                 println("\t- Finding Classes...")
-                finder.add(File(url))
+                finder.add(File(Loader.STS_JAR))
 
                 for (modInfo: ModInfo in Loader.MODINFOS) {
                     if (modInfo.jarURL != null) {
                         try {
-                            var f = File(modInfo.jarURL.toURI())
-                            finder.add(f)
+                            finder.add(File(modInfo.jarURL.toURI()))
                         } catch (e: URISyntaxException) {
                             // do nothing
                         }
@@ -67,8 +70,9 @@ class BlockReminderPatches {
                         NotClassFilter(AbstractClassFilter()),
                         ClassModifiersClassFilter(Modifier.PUBLIC),
                         OrClassFilter(
-                                PowerClassFilter(),
-                                OrbClassFilter()
+                            StsClassFilter(AbstractRelic::class.java),
+                            StsClassFilter(AbstractPower::class.java),
+                            StsClassFilter(AbstractOrb::class.java)
                         )
                 )
 
@@ -78,35 +82,109 @@ class BlockReminderPatches {
                 println("\t- Done Finding Classes...\n\t- Begin Patching...")
 
                 for ( classInfo: ClassInfo in foundClasses ) {
+                    // println(classInfo.className)
+
                     val ctClass: CtClass = ctBehavior.declaringClass.classPool.get(classInfo.className)
                     var endOfTurn: CtMethod? = null
-                    var amountRef: String? = ""
 
                     try {
                         endOfTurn = ctClass.getDeclaredMethod("atEndOfTurn")
-                        amountRef = "this.amount"
+                    } catch (e:  NotFoundException) {
+                        // do nothing
+                    }
+
+                    try {
+                        endOfTurn = ctClass.getDeclaredMethod("atEndOfTurnPreEndTurnCards")
                     } catch (e:  NotFoundException) {
                         // do nothing
                     }
 
                     try {
                         endOfTurn = ctClass.getDeclaredMethod("onEndOfTurn")
-                        amountRef = "this.passiveAmount"
+                    } catch (e:  NotFoundException) {
+                        // do nothing
+                    }
+
+                    try {
+                        endOfTurn = ctClass.getDeclaredMethod("onPlayerEndTurn")
                     } catch (e:  NotFoundException) {
                         // do nothing
                     }
 
                     val lines = Locator().Locate(endOfTurn)
-                    if (endOfTurn != null && lines != null) {
-                        val patch: String = "${BlockPreview::class.java.name}.Statics.runPreview($amountRef); if (${BlockPreview::class.java.name}.isPreview) { return; }"
-                        val lineToInsert = lines[0]
+
+                    if (endOfTurn != null && lines != null && lines.isNotEmpty()) {
                         println("\t|\t- Patch Class: [${classInfo.className}]")
-                        println("\t|\t\tInsert loc: $lineToInsert")
-                        endOfTurn.insertAt(lineToInsert, patch)
-                        println("\t|\tSuccess...\n\t|")
+                        try {
+                            endOfTurn.instrument(FieldSetInstrument())
+                            endOfTurn.instrument(PreviewInstrument(classInfo))
+                            println("\t|\tSuccess...\n\t|")
+                        } catch(e: PatchingException) {
+                            println("\t|\tFailure...\n\t|")
+                            e.printStackTrace()
+                        }
                     }
                 }
                 println("\t- Done Patching...")
+            }
+
+            class PreviewInstrument : ExprEditor {
+                private var classInfo: ClassInfo? = null
+
+                constructor(classInfo: ClassInfo) {
+                    this.classInfo = classInfo
+                }
+
+                override fun edit(m: MethodCall?) {
+                    if(m?.methodName == "addToBot" || m?.methodName == "addToBottom" || m?.methodName == "addToTop") {
+                        println("\t|\t\t- Replacing Method Call: ${m?.className}.${m?.methodName}")
+                        m.replace("{" +
+                                "if (${BlockPreview::class.java.name}.isPreview) {" +
+                                    "if ($1 instanceof ${GainBlockAction::class.java.name}) {" +
+                                        "${BlockPreview::class.java.name}.Statics.runPreview($1.amount);" +
+                                    "}" +
+                                "} else {" +
+                                    "$" + "proceed($$);" +
+                                "}" +
+                        "}")
+                    } else {
+                        if(m != null && m?.className == classInfo?.className) {
+                            println("\t|\t\t- Replacing Method Call: ${m?.className}.${m?.methodName}")
+                            m.replace("{" +
+                                "if (!${BlockPreview::class.java.name}.isPreview) {" +
+                                    "$" + "_=$" + "proceed($$);" +
+                                "}" +
+                            "}")
+                        }
+                    }
+                }
+            }
+
+            class FieldSetInstrument : ExprEditor() {
+                override fun edit(f: FieldAccess) {
+                    if(f.isWriter) {
+                        println("\t|\t\t- Replacing Field Access: ${f.className}.${f.fieldName}")
+                        f.replace("{" +
+                            "if (!${BlockPreview::class.java.name}.isPreview) {" +
+                                "$" + "_=$" + "proceed($$);" +
+                            "}" +
+                        "}")
+                    }
+                }
+
+                fun findFieldInClass(className: String, fieldName: String): Boolean {
+                    val clazz = Class.forName(className)
+                    try {
+                        // try to find field in class
+                        clazz.getDeclaredField(fieldName)
+                    } catch (e: NoSuchFieldException) {
+                        return false;
+                    } catch (e: SecurityException) {
+                        return false;
+                    }
+
+                    return true;
+                }
             }
 
             class Locator : SpireInsertLocator() {
@@ -120,15 +198,9 @@ class BlockReminderPatches {
                 }
             }
 
-            class PowerClassFilter : ClassFilter {
+            class StsClassFilter(private val clz: Class<*>) : ClassFilter {
                 override fun accept(classInfo: ClassInfo?, classFinder: ClassFinder?): Boolean {
-                    return classInfo?.superClassName == AbstractPower::class.java.name
-                }
-            }
-
-            class OrbClassFilter : ClassFilter {
-                override fun accept(classInfo: ClassInfo?, classFinder: ClassFinder?): Boolean {
-                    return classInfo?.superClassName == AbstractOrb::class.java.name
+                    return classInfo?.superClassName == clz.name
                 }
             }
         }
