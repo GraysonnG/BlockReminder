@@ -82,11 +82,19 @@ class BlockReminderPatches {
                 println("\t- Done Finding Classes...\n\t- Begin Patching...")
 
                 for ( classInfo: ClassInfo in foundClasses ) {
+                    // println(classInfo.className)
+
                     val ctClass: CtClass = ctBehavior.declaringClass.classPool.get(classInfo.className)
                     var endOfTurn: CtMethod? = null
 
                     try {
                         endOfTurn = ctClass.getDeclaredMethod("atEndOfTurn")
+                    } catch (e:  NotFoundException) {
+                        // do nothing
+                    }
+
+                    try {
+                        endOfTurn = ctClass.getDeclaredMethod("atEndOfTurnPreEndTurnCards")
                     } catch (e:  NotFoundException) {
                         // do nothing
                     }
@@ -109,7 +117,7 @@ class BlockReminderPatches {
                         println("\t|\t- Patch Class: [${classInfo.className}]")
                         try {
                             endOfTurn.instrument(FieldSetInstrument())
-                            endOfTurn.instrument(PreviewInstrument())
+                            endOfTurn.instrument(PreviewInstrument(classInfo))
                             println("\t|\tSuccess...\n\t|")
                         } catch(e: PatchingException) {
                             println("\t|\tFailure...\n\t|")
@@ -120,7 +128,13 @@ class BlockReminderPatches {
                 println("\t- Done Patching...")
             }
 
-            class PreviewInstrument : ExprEditor() {
+            class PreviewInstrument : ExprEditor {
+                private var classInfo: ClassInfo? = null
+
+                constructor(classInfo: ClassInfo) {
+                    this.classInfo = classInfo
+                }
+
                 override fun edit(m: MethodCall?) {
                     if(m?.methodName == "addToBot" || m?.methodName == "addToBottom" || m?.methodName == "addToTop") {
                         println("\t|\t\t- Replacing Method Call: ${m?.className}.${m?.methodName}")
@@ -134,7 +148,8 @@ class BlockReminderPatches {
                                 "}" +
                         "}")
                     } else {
-                        if(m != null) {
+                        if(m != null && m?.className == classInfo?.className) {
+                            println("\t|\t\t- Replacing Method Call: ${m?.className}.${m?.methodName}")
                             m.replace("{" +
                                 "if (!${BlockPreview::class.java.name}.isPreview) {" +
                                     "$" + "_=$" + "proceed($$);" +
@@ -147,14 +162,28 @@ class BlockReminderPatches {
 
             class FieldSetInstrument : ExprEditor() {
                 override fun edit(f: FieldAccess) {
-                    println()
                     if(f.isWriter) {
+                        println("\t|\t\t- Replacing Field Access: ${f.className}.${f.fieldName}")
                         f.replace("{" +
                             "if (!${BlockPreview::class.java.name}.isPreview) {" +
                                 "$" + "_=$" + "proceed($$);" +
                             "}" +
                         "}")
                     }
+                }
+
+                fun findFieldInClass(className: String, fieldName: String): Boolean {
+                    val clazz = Class.forName(className)
+                    try {
+                        // try to find field in class
+                        clazz.getDeclaredField(fieldName)
+                    } catch (e: NoSuchFieldException) {
+                        return false;
+                    } catch (e: SecurityException) {
+                        return false;
+                    }
+
+                    return true;
                 }
             }
 
