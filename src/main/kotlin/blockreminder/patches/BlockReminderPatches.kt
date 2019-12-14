@@ -25,22 +25,21 @@ import java.io.File
 
 @Suppress("unused")
 class BlockReminderPatches {
+    companion object Statics {
+        val endOfTurnMethodNames = arrayOf(
+                "atEndOfTurn",
+                "atEndOfTurnPreEndTurnCards",
+                "onEndOfTurn",
+                "onPlayerEndTurn"
+        )
+    }
+
+
     @SpirePatch(clz = AbstractCreature::class, method = SpirePatch.CLASS)
     class BlockPreviewField {
         companion object {
             @JvmField
             var blockPreview: SpireField<Int?> = SpireField{0}
-        }
-    }
-
-    @SpirePatch(clz = AbstractPower::class, method =  "flash")
-    class FlashPatch {
-        companion object {
-            @JvmStatic
-            @SpirePrefixPatch
-            fun stopInPreview(__instance: AbstractPower): SpireReturn<Void> {
-                return if (BlockPreview.isPreview) SpireReturn.Return(null) else SpireReturn.Continue()
-            }
         }
     }
 
@@ -82,33 +81,16 @@ class BlockReminderPatches {
                 println("\t- Done Finding Classes...\n\t- Begin Patching...")
 
                 for ( classInfo: ClassInfo in foundClasses ) {
-                    // println(classInfo.className)
 
                     val ctClass: CtClass = ctBehavior.declaringClass.classPool.get(classInfo.className)
                     var endOfTurn: CtMethod? = null
 
-                    try {
-                        endOfTurn = ctClass.getDeclaredMethod("atEndOfTurn")
-                    } catch (e:  NotFoundException) {
-                        // do nothing
-                    }
-
-                    try {
-                        endOfTurn = ctClass.getDeclaredMethod("atEndOfTurnPreEndTurnCards")
-                    } catch (e:  NotFoundException) {
-                        // do nothing
-                    }
-
-                    try {
-                        endOfTurn = ctClass.getDeclaredMethod("onEndOfTurn")
-                    } catch (e:  NotFoundException) {
-                        // do nothing
-                    }
-
-                    try {
-                        endOfTurn = ctClass.getDeclaredMethod("onPlayerEndTurn")
-                    } catch (e:  NotFoundException) {
-                        // do nothing
+                    for (i in 0 until endOfTurnMethodNames.size) {
+                        try {
+                            endOfTurn = ctClass.getDeclaredMethod(endOfTurnMethodNames[i])
+                        } catch (e:  NotFoundException) {
+                            // do nothing
+                        }
                     }
 
                     val lines = Locator().Locate(endOfTurn)
@@ -170,20 +152,6 @@ class BlockReminderPatches {
                             "}" +
                         "}")
                     }
-                }
-
-                fun findFieldInClass(className: String, fieldName: String): Boolean {
-                    val clazz = Class.forName(className)
-                    try {
-                        // try to find field in class
-                        clazz.getDeclaredField(fieldName)
-                    } catch (e: NoSuchFieldException) {
-                        return false;
-                    } catch (e: SecurityException) {
-                        return false;
-                    }
-
-                    return true;
                 }
             }
 

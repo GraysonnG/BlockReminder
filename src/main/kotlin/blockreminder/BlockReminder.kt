@@ -20,11 +20,5 @@ class BlockReminder {
         fun log(vararg items: String) {
             println(items.asList().joinToString(" : ", "Block Reminder"))
         }
-
-        @JvmStatic
-        fun addRelicToPreview(relic: AbstractRelic, preview: (r: AbstractRelic) -> Int) {
-            log("Registered Relic: ${relic.relicId}")
-            previewRelics.putIfAbsent(relic.relicId, preview)
-        }
     }
 }
