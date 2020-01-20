@@ -14,17 +14,11 @@ class BlockReminder {
         @JvmStatic
         fun initialize() {
             BlockReminder()
-            log("Version", "0.0.2")
+            log("Version", "1.0.0")
         }
 
         fun log(vararg items: String) {
             println(items.asList().joinToString(" : ", "Block Reminder"))
-        }
-
-        @JvmStatic
-        fun addRelicToPreview(relic: AbstractRelic, preview: (r: AbstractRelic) -> Int) {
-            log("Registered Relic: ${relic.relicId}")
-            previewRelics.putIfAbsent(relic.relicId, preview)
         }
     }
 }
