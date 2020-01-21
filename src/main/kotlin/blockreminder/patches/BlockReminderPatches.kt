@@ -126,7 +126,7 @@ class BlockReminderPatches {
                                         "${BlockPreview::class.java.name}.Statics.runPreview($1.amount);" +
                                     "}" +
                                 "} else {" +
-                                    "$" + "proceed($$);" +
+                                    "${'$'}proceed($$);" +
                                 "}" +
                         "}")
                     } else {
@@ -134,7 +134,7 @@ class BlockReminderPatches {
                             println("\t|\t\t- Replacing Method Call: ${m?.className}.${m?.methodName}")
                             m.replace("{" +
                                 "if (!${BlockPreview::class.java.name}.isPreview) {" +
-                                    "$" + "_=$" + "proceed($$);" +
+                                    "${'$'}_=${'$'}proceed($$);" +
                                 "}" +
                             "}")
                         }
@@ -148,7 +148,7 @@ class BlockReminderPatches {
                         println("\t|\t\t- Replacing Field Access: ${f.className}.${f.fieldName}")
                         f.replace("{" +
                             "if (!${BlockPreview::class.java.name}.isPreview) {" +
-                                "$" + "_=$" + "proceed($$);" +
+                                "${'$'}_=${'$'}proceed($$);" +
                             "}" +
                         "}")
                     }
