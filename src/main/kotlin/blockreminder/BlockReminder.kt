@@ -10,8 +10,8 @@ import java.lang.NullPointerException
 @SpireInitializer
 class BlockReminder {
     companion object Statics {
-        private val endTurnBlockClassesKey = "CLASSES"
-        private val endTurnBlockClassesDelimiter = ","
+        private const val endTurnBlockClassesKey = "CLASSES"
+        private const val endTurnBlockClassesDelimiter = ","
         private var config: SpireConfig? = null
         val endTurnBlockClasses = ArrayList<String>()
 
