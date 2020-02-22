@@ -168,7 +168,13 @@ class BlockReminderPatches {
 
             class StsClassFilter(private val clz: Class<*>) : ClassFilter {
                 override fun accept(classInfo: ClassInfo?, classFinder: ClassFinder?): Boolean {
-                    return classInfo?.superClassName == clz.name
+                    return if (classInfo != null) {
+                        var superClasses = mutableMapOf<String, ClassInfo>()
+                        classFinder?.findAllSuperClasses(classInfo, superClasses)
+                        superClasses.containsKey(clz.name)
+                    } else {
+                        false
+                    }
                 }
             }
         }
