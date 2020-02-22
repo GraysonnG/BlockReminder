@@ -1,6 +1,7 @@
 package blockreminder.patches
 
 import blockreminder.BlockPreview
+import blockreminder.BlockReminder
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.evacipated.cardcrawl.modthespire.Loader
 import com.evacipated.cardcrawl.modthespire.ModInfo
@@ -100,6 +101,7 @@ class BlockReminderPatches {
                         try {
                             endOfTurn.instrument(FieldSetInstrument())
                             endOfTurn.instrument(PreviewInstrument(classInfo))
+                            BlockReminder.endTurnBlockClasses.add(classInfo.className)
                             println("\t|\tSuccess...\n\t|")
                         } catch(e: PatchingException) {
                             println("\t|\tFailure...\n\t|")
@@ -108,6 +110,9 @@ class BlockReminderPatches {
                     }
                 }
                 println("\t- Done Patching...")
+                BlockReminder.initConfig()
+                BlockReminder.saveEndTurnClasses()
+                println("\t- Saving Patched Class Names...")
             }
 
             class PreviewInstrument : ExprEditor {
