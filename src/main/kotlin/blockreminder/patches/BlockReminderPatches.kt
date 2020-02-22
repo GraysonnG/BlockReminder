@@ -3,7 +3,6 @@ package blockreminder.patches
 import blockreminder.BlockPreview
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.evacipated.cardcrawl.modthespire.Loader
-import com.evacipated.cardcrawl.modthespire.MTSClassLoader
 import com.evacipated.cardcrawl.modthespire.ModInfo
 import com.evacipated.cardcrawl.modthespire.lib.*
 import com.evacipated.cardcrawl.modthespire.patcher.PatchingException
