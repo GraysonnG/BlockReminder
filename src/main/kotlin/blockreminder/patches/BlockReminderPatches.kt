@@ -3,6 +3,7 @@ package blockreminder.patches
 import blockreminder.BlockPreview
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.evacipated.cardcrawl.modthespire.Loader
+import com.evacipated.cardcrawl.modthespire.MTSClassLoader
 import com.evacipated.cardcrawl.modthespire.ModInfo
 import com.evacipated.cardcrawl.modthespire.lib.*
 import com.evacipated.cardcrawl.modthespire.patcher.PatchingException
@@ -168,7 +169,13 @@ class BlockReminderPatches {
 
             class StsClassFilter(private val clz: Class<*>) : ClassFilter {
                 override fun accept(classInfo: ClassInfo?, classFinder: ClassFinder?): Boolean {
-                    return classInfo?.superClassName == clz.name
+                    return if (classInfo != null) {
+                        var superClasses = mutableMapOf<String, ClassInfo>()
+                        classFinder?.findAllSuperClasses(classInfo, superClasses)
+                        superClasses.containsKey(clz.name)
+                    } else {
+                        false
+                    }
                 }
             }
         }
