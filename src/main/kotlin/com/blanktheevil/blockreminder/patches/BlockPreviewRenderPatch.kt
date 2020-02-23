@@ -2,6 +2,7 @@ package com.blanktheevil.blockreminder.patches
 
 import com.blanktheevil.blockreminder.BlockPreview
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.blanktheevil.blockreminder.patches.locators.AccessCurrentBlockLocator
 import com.evacipated.cardcrawl.modthespire.lib.SpireInsertPatch
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch
 import com.megacrit.cardcrawl.characters.AbstractPlayer
@@ -13,7 +14,7 @@ import com.megacrit.cardcrawl.dungeons.AbstractDungeon
 class BlockPreviewRenderPatch {
   companion object {
     @SpireInsertPatch(
-      rloc = 18,
+      locator = AccessCurrentBlockLocator::class,
       localvars = [
         "x",
         "y",
