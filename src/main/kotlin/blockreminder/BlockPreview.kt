@@ -9,16 +9,13 @@ import com.megacrit.cardcrawl.core.AbstractCreature
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon
 import com.megacrit.cardcrawl.helpers.FontHelper
 import com.megacrit.cardcrawl.helpers.ImageMaster
-import com.megacrit.cardcrawl.orbs.AbstractOrb
-import com.megacrit.cardcrawl.powers.AbstractPower
-import com.megacrit.cardcrawl.relics.AbstractRelic
 
 class BlockPreview {
   companion object Statics {
     private val PREVIEW_COLOR = Color.CYAN.cpy()
-    private val BLOCK_W = 64;
-    private val BLOCK_ICON_X = (-14).scale();
-    private val BLOCK_ICON_Y = (-14).scale();
+    private const val BLOCK_W = 64
+    private val BLOCK_ICON_X = (-14).scale()
+    private val BLOCK_ICON_Y = (-14).scale()
 
     private fun increaseBlockPreview(owner: AbstractCreature, amount: Int) {
       with(BlockReminderPatches.BlockPreviewField.blockPreview) {
@@ -27,38 +24,37 @@ class BlockPreview {
     }
 
     @JvmField
-    var isPreview = false;
+    var isPreview = false
 
+    @Suppress("unused")
     fun runPreview(amount: Int) {
       increaseBlockPreview(AbstractDungeon.player, amount)
     }
 
     fun update(instance: AbstractCreature) {
       isPreview = true
-      PREVIEW_COLOR.a = 0.5f;
-      if (instance != null) {
-        BlockReminderPatches.BlockPreviewField.blockPreview.set(instance, 0)
-        with(BlockReminder.endTurnBlockClasses) {
-          if (instance is AbstractPlayer) {
-            instance.powers.stream()
-              .filter { this.contains(it::class.java.name) }
-              .forEach {
-                it.atEndOfTurn(true)
-                it.atEndOfTurnPreEndTurnCards(true)
-              }
+      PREVIEW_COLOR.a = 0.5f
+      BlockReminderPatches.BlockPreviewField.blockPreview.set(instance, 0)
+      with(BlockReminder.endTurnBlockClasses) {
+        if (instance is AbstractPlayer) {
+          instance.powers.stream()
+            .filter { this.contains(it::class.java.name) }
+            .forEach {
+              it.atEndOfTurn(true)
+              it.atEndOfTurnPreEndTurnCards(true)
+            }
 
-            instance.orbs.stream()
-              .filter { this.contains(it::class.java.name) }
-              .forEach {
-                it.onEndOfTurn()
-              }
+          instance.orbs.stream()
+            .filter { this.contains(it::class.java.name) }
+            .forEach {
+              it.onEndOfTurn()
+            }
 
-            instance.relics.stream()
-              .filter { this.contains(it::class.java.name) }
-              .forEach {
-                it.onPlayerEndTurn()
-              }
-          }
+          instance.relics.stream()
+            .filter { this.contains(it::class.java.name) }
+            .forEach {
+              it.onPlayerEndTurn()
+            }
         }
       }
       isPreview = false

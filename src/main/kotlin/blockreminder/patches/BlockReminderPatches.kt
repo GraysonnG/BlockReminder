@@ -26,7 +26,7 @@ import java.io.File
 @Suppress("unused")
 class BlockReminderPatches {
   companion object {
-    val endOfTurnMethodNames = mutableListOf<String>()
+    private val endOfTurnMethodNames = mutableListOf<String>()
 
     init {
       endOfTurnMethodNames.add("atEndOfTurn")
@@ -108,7 +108,7 @@ class BlockReminderPatches {
               getEndOfTurnMethodFromCtClass(it)
             }
             .filter {
-              it != null && Locator().Locate(it)!!.isNotEmpty()
+              it != null && Locator().Locate(it).isNotEmpty()
             }
             .map {
               it.let { it!! }
@@ -138,7 +138,7 @@ class BlockReminderPatches {
       class PreviewInstrument(private val classInfo: ClassInfo) : ExprEditor() {
         override fun edit(m: MethodCall?) {
           if (m?.methodName == "addToBot" || m?.methodName == "addToBottom" || m?.methodName == "addToTop") {
-            println("\t|\t\t- Replacing Method Call: ${m?.className}.${m?.methodName}")
+            println("\t|\t\t- Replacing Method Call: ${m.className}.${m.methodName}")
             m.replace("{" +
                 "if (${BlockPreview::class.java.name}.isPreview) {" +
                 "if ($1 instanceof ${GainBlockAction::class.java.name}) {" +
@@ -149,8 +149,8 @@ class BlockReminderPatches {
                 "}" +
                 "}")
           } else {
-            if (m != null && m?.className == classInfo?.className) {
-              println("\t|\t\t- Replacing Method Call: ${m?.className}.${m?.methodName}")
+            if (m != null && m.className == classInfo.className) {
+              println("\t|\t\t- Replacing Method Call: ${m.className}.${m.methodName}")
               m.replace("{" +
                   "if (!${BlockPreview::class.java.name}.isPreview) {" +
                   "${'$'}_=${'$'}proceed($$);" +
@@ -188,7 +188,7 @@ class BlockReminderPatches {
       class StsClassFilter(private val clz: Class<*>) : ClassFilter {
         override fun accept(classInfo: ClassInfo?, classFinder: ClassFinder?): Boolean {
           return if (classInfo != null) {
-            var superClasses = mutableMapOf<String, ClassInfo>()
+            val superClasses = mutableMapOf<String, ClassInfo>()
             classFinder?.findAllSuperClasses(classInfo, superClasses)
             superClasses.containsKey(clz.name)
           } else {

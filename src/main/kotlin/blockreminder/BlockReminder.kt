@@ -1,6 +1,5 @@
 package blockreminder
 
-import basemod.BaseMod
 import com.evacipated.cardcrawl.modthespire.lib.SpireConfig
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer
 import java.io.IOException
