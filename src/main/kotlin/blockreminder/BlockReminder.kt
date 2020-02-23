@@ -18,7 +18,7 @@ class BlockReminder {
         @JvmStatic
         fun initialize() {
             BlockReminder()
-            log("Version", "1.0.0")
+            log("Version", "1.1.0")
             initConfig()
             loadEndTurnClasses()
         }

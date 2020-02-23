@@ -6,7 +6,7 @@
 
     <groupId>block-reminder</groupId>
     <artifactId>block-reminder</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 
     <properties>
         <steamFolder>D:\Steam\</steamFolder>

@@ -21,9 +21,9 @@ class BlockPreview {
         private val BLOCK_ICON_Y = (-14).scale();
 
         private fun increaseBlockPreview(owner: AbstractCreature, amount: Int) {
-            BlockReminderPatches.BlockPreviewField.blockPreview.set(
-                    owner,
-                    (BlockReminderPatches.BlockPreviewField.blockPreview.get(owner) ?: 0) + amount)
+            with(BlockReminderPatches.BlockPreviewField.blockPreview) {
+                set(owner, (get(owner) ?: 0) + amount)
+            }
         }
 
         @JvmField
@@ -38,25 +38,26 @@ class BlockPreview {
             PREVIEW_COLOR.a = 0.5f;
             if (instance != null) {
                 BlockReminderPatches.BlockPreviewField.blockPreview.set(instance, 0)
-                for (p: AbstractPower in instance.powers) {
-                    if (BlockReminder.endTurnBlockClasses.contains(p::class.java.name)) {
-                        p.atEndOfTurn(true)
-                        p.atEndOfTurnPreEndTurnCards(true)
-                    }
-                }
+                with(BlockReminder.endTurnBlockClasses) {
+                    if (instance is AbstractPlayer) {
+                        instance.powers.stream()
+                            .filter { this.contains(it::class.java.name) }
+                            .forEach {
+                                it.atEndOfTurn(true)
+                                it.atEndOfTurnPreEndTurnCards(true)
+                            }
 
-                if(instance is AbstractPlayer) {
-                    val player: AbstractPlayer = instance
-                    for(o: AbstractOrb in player.orbs) {
-                        if (BlockReminder.endTurnBlockClasses.contains(o::class.java.name)) {
-                            o.onEndOfTurn()
-                        }
-                    }
+                        instance.orbs.stream()
+                            .filter { this.contains(it::class.java.name) }
+                            .forEach {
+                                it.onEndOfTurn()
+                            }
 
-                    for(r: AbstractRelic in player.relics) {
-                        if(BlockReminder.endTurnBlockClasses.contains(r::class.java.name)) {
-                            r.onPlayerEndTurn()
-                        }
+                        instance.relics.stream()
+                            .filter { this.contains(it::class.java.name) }
+                            .forEach {
+                                it.onPlayerEndTurn()
+                            }
                     }
                 }
             }
