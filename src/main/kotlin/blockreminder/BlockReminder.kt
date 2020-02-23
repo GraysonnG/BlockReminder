@@ -24,7 +24,7 @@ class BlockReminder {
 
     fun initConfig() {
       try {
-        config = SpireConfig("BlockPreview", "endTurnClasses");
+        config = SpireConfig("BlockPreview", "endTurnClasses")
       } catch (e: IOException) {
         e.printStackTrace()
       }
@@ -43,7 +43,7 @@ class BlockReminder {
       }
     }
 
-    fun loadEndTurnClasses() {
+    private fun loadEndTurnClasses() {
       try {
         config!!.load()
         endTurnBlockClasses.addAll(
@@ -56,7 +56,7 @@ class BlockReminder {
       }
     }
 
-    fun log(vararg items: String) {
+    private fun log(vararg items: String) {
       println(items.asList().joinToString(" : ", "Block Reminder"))
     }
   }

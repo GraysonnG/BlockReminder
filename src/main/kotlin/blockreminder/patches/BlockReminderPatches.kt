@@ -61,6 +61,7 @@ class BlockReminderPatches {
   @SpirePatch(clz = CardCrawlGame::class, method = SpirePatch.CONSTRUCTOR)
   class SmartBlockPreview {
     companion object {
+      @Suppress("FunctionName")
       @JvmStatic
       fun Raw(ctBehavior: CtBehavior) {
         println("\nBlock Reminder: Smart Block Preview Patch")
