@@ -1,7 +1,7 @@
-package blockreminder
+package com.blanktheevil.blockreminder
 
-import blockreminder.patches.BlockReminderPatches
-import blockreminder.utils.scale
+import com.blanktheevil.blockreminder.patches.BlockPreviewFieldPatch
+import com.blanktheevil.blockreminder.utils.scale
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.megacrit.cardcrawl.characters.AbstractPlayer
@@ -18,7 +18,7 @@ class BlockPreview {
     private val BLOCK_ICON_Y = (-14).scale()
 
     private fun increaseBlockPreview(owner: AbstractCreature, amount: Int) {
-      with(BlockReminderPatches.BlockPreviewField.blockPreview) {
+      with(BlockPreviewFieldPatch.blockPreview) {
         set(owner, (get(owner) ?: 0) + amount)
       }
     }
@@ -34,7 +34,7 @@ class BlockPreview {
     fun update(instance: AbstractCreature) {
       isPreview = true
       PREVIEW_COLOR.a = 0.5f
-      BlockReminderPatches.BlockPreviewField.blockPreview.set(instance, 0)
+      BlockPreviewFieldPatch.blockPreview.set(instance, 0)
       with(BlockReminder.endTurnBlockClasses) {
         if (instance is AbstractPlayer) {
           instance.powers.stream()
@@ -67,7 +67,7 @@ class BlockPreview {
         return
       }
 
-      sb.color = this.PREVIEW_COLOR
+      sb.color = PREVIEW_COLOR
       sb.draw(
         ImageMaster.BLOCK_ICON,
         x + BLOCK_ICON_X - BLOCK_W / 2f,

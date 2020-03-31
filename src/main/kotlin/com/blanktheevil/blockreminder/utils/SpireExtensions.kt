@@ -1,4 +1,4 @@
-package blockreminder.utils
+package com.blanktheevil.blockreminder.utils
 
 import com.megacrit.cardcrawl.core.Settings
 
