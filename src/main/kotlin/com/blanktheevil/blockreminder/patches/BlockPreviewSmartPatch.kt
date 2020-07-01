@@ -30,18 +30,6 @@ class BlockPreviewSmartPatch {
       println("\t- Finding Classes...")
       finder.add(File(Loader.STS_JAR))
 
-      Loader.MODINFOS.asList().stream()
-        .filter {
-          it.jarURL != null
-        }
-        .forEach {
-          try {
-            finder.add(File(it.jarURL.toURI()))
-          } catch (e: URISyntaxException) {
-            // do nothing
-          }
-        }
-
       // Get all classes
       val filter = AndClassFilter(
         NotClassFilter(InterfaceOnlyClassFilter()),
