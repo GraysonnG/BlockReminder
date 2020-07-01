@@ -2,7 +2,7 @@
   "modid" : "block-reminder",
   "name" : "Block Reminder",
   "author_list" : ["Blank The Evil"],
-  "description" : "This mod attempts to show you a preview of how much block you will gain at the end of your turn. Currently it correctly predicts the following\n\nWorks for:\nRelics:\nOrichalcum\nCloak Clasp\n\nPowers:\nMetallicize\nPlated Armor\nLike Water\n\nOrbs:\nFrost\n\nHowever, while it is possible for this to be used with other mods, the results may not always be accurate, or at worst have quite negative effects due to how the patch is written. If something happens please make me aware!",
+  "description" : "This mod attempts to show you a preview of how much block you will gain at the end of your turn. Currently it correctly predicts the following\n\nWorks for:\nRelics:\nOrichalcum\nCloak Clasp\n\nPowers:\nMetallicize\nPlated Armor\nLike Water\n\nOrbs:\nFrost",
   "credits" : "",
   "dependencies" : ["basemod"],
   "version" : "1.1.0",
