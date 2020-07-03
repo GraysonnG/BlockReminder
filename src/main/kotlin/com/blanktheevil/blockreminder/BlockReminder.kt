@@ -1,7 +1,10 @@
-package blockreminder
+package com.blanktheevil.blockreminder
 
 import com.evacipated.cardcrawl.modthespire.lib.SpireConfig
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer
+import javassist.CtClass
+import javassist.CtMethod
+import javassist.NotFoundException
 import java.io.IOException
 import java.lang.NullPointerException
 
@@ -13,6 +16,14 @@ class BlockReminder {
     private const val endTurnBlockClassesDelimiter = ","
     private var config: SpireConfig? = null
     val endTurnBlockClasses = ArrayList<String>()
+    private val endOfTurnMethodNames = mutableListOf<String>()
+
+    init {
+      endOfTurnMethodNames.add("atEndOfTurn")
+      endOfTurnMethodNames.add("atEndOfTurnPreEndTurnCards")
+      endOfTurnMethodNames.add("onEndOfTurn")
+      endOfTurnMethodNames.add("onPlayerEndTurn")
+    }
 
     @JvmStatic
     fun initialize() {
@@ -20,6 +31,19 @@ class BlockReminder {
       log("Version", "1.1.0")
       initConfig()
       loadEndTurnClasses()
+    }
+
+    @JvmStatic
+    fun getEndOfTurnMethodFromCtClass(ctClass: CtClass): CtMethod? {
+      var method: CtMethod? = null
+      endOfTurnMethodNames.forEach {
+        try {
+          method = ctClass.getDeclaredMethod(it) as CtMethod
+        } catch (e: NotFoundException) {
+          // do nothing
+        }
+      }
+      return method
     }
 
     fun initConfig() {
